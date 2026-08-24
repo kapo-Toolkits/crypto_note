@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'app_state.dart';
 import 'haptics.dart';
-import 'ocr_service.dart';
 
 /// გაზიარებული ლინკი — აპის მისამართი.
 const String kShareLink = 'https://text.qgis.ge/';
@@ -61,7 +61,6 @@ class _HomePageState extends State<HomePage> {
   final _pinController = TextEditingController();
   bool _pinVisible = false;
   double _resultScale = 1.0;
-  bool _scanning = false;
 
   @override
   void dispose() {
@@ -75,26 +74,15 @@ class _HomePageState extends State<HomePage> {
     context.read<AppState>().run(_textController.text, _pinController.text);
   }
 
-  Future<void> _scan() async {
+  Future<void> _scanQr() async {
     FocusScope.of(context).unfocus();
-    final bool encryptMode = context.read<AppState>().mode == Mode.encrypt;
-    setState(() => _scanning = true);
-    try {
-      // დაშიფვრისას ქართული+ლათინური (kat+eng), განშიფვრისას Base32 (eng).
-      final text = await scanTextFromCamera(georgian: encryptMode);
-      if (!mounted) return;
-      if (text == null) return; // გაუქმდა
-      if (text.isEmpty) {
-        _snack(context, 'ტექსტი ვერ ამოვიცანი — სცადე უკეთესი განათება/ფოკუსი');
-        return;
-      }
-      setState(() => _textController.text = text);
-      hapticTick();
-    } catch (_) {
-      if (mounted) _snack(context, 'სკანირება ვერ მოხერხდა');
-    } finally {
-      if (mounted) setState(() => _scanning = false);
-    }
+    final String? code = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const _QrScannerPage()),
+    );
+    if (!mounted || code == null || code.isEmpty) return;
+    setState(() => _textController.text = code);
+    hapticTick();
+    _snack(context, 'QR წაკითხულია');
   }
 
   @override
@@ -166,28 +154,16 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                  // კამერით სკანირება (მხოლოდ native პლატფორმებზე)
-                  if (kOcrSupported) ...[
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton.icon(
-                        onPressed: (state.busy || _scanning) ? null : _scan,
-                        icon: _scanning
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.document_scanner_outlined,
-                                size: 20),
-                        label: Text(_scanning
-                            ? 'ვასკანერებ…'
-                            : 'კამერით სკანირება'),
-                      ),
+                  // QR-ის სკანირება — წაკითხულ ტექსტს პირდაპირ ავსებს ველში
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: state.busy ? null : _scanQr,
+                      icon: const Icon(Icons.qr_code_scanner, size: 20),
+                      label: const Text('QR-ის სკანირება'),
                     ),
-                  ],
+                  ),
                   const SizedBox(height: 16),
 
                   // PIN-ის ველი
@@ -520,6 +496,87 @@ class _ResultBlock extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('დახურვა'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// QR-ის სკანირების გვერდი. აბრუნებს წაკითხულ ტექსტს Navigator.pop-ით.
+class _QrScannerPage extends StatefulWidget {
+  const _QrScannerPage();
+
+  @override
+  State<_QrScannerPage> createState() => _QrScannerPageState();
+}
+
+class _QrScannerPageState extends State<_QrScannerPage> {
+  final MobileScannerController _controller = MobileScannerController();
+  bool _handled = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    if (_handled) return;
+    final String? raw =
+        capture.barcodes.isNotEmpty ? capture.barcodes.first.rawValue : null;
+    if (raw == null || raw.isEmpty) return;
+    _handled = true;
+    hapticTick();
+    Navigator.of(context).pop(raw);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('QR-ის სკანირება'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.flashlight_on),
+            tooltip: 'ფანარი',
+            onPressed: () => _controller.toggleTorch(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.cameraswitch),
+            tooltip: 'კამერის შეცვლა',
+            onPressed: () => _controller.switchCamera(),
+          ),
+        ],
+      ),
+      body: Stack(
+        alignment: Alignment.center,
+        children: [
+          MobileScanner(controller: _controller, onDetect: _onDetect),
+          IgnorePointer(
+            child: Container(
+              width: 240,
+              height: 240,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 3),
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+          const Positioned(
+            bottom: 48,
+            left: 24,
+            right: 24,
+            child: Text(
+              'მოათავსე QR კოდი კადრში',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                shadows: [Shadow(blurRadius: 6, color: Colors.black)],
+              ),
+            ),
           ),
         ],
       ),
