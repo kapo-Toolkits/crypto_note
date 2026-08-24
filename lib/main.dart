@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 
 import 'app_state.dart';
 import 'haptics.dart';
+import 'ocr_service.dart';
 
 /// გაზიარებული ლინკი — აპის მისამართი.
 const String kShareLink = 'https://text.qgis.ge/';
@@ -60,6 +61,7 @@ class _HomePageState extends State<HomePage> {
   final _pinController = TextEditingController();
   bool _pinVisible = false;
   double _resultScale = 1.0;
+  bool _scanning = false;
 
   @override
   void dispose() {
@@ -71,6 +73,28 @@ class _HomePageState extends State<HomePage> {
   void _run() {
     FocusScope.of(context).unfocus(); // კლავიატურის დახურვა შედეგის სანახავად
     context.read<AppState>().run(_textController.text, _pinController.text);
+  }
+
+  Future<void> _scan() async {
+    FocusScope.of(context).unfocus();
+    final bool encryptMode = context.read<AppState>().mode == Mode.encrypt;
+    setState(() => _scanning = true);
+    try {
+      // დაშიფვრისას ქართული+ლათინური (kat+eng), განშიფვრისას Base32 (eng).
+      final text = await scanTextFromCamera(georgian: encryptMode);
+      if (!mounted) return;
+      if (text == null) return; // გაუქმდა
+      if (text.isEmpty) {
+        _snack(context, 'ტექსტი ვერ ამოვიცანი — სცადე უკეთესი განათება/ფოკუსი');
+        return;
+      }
+      setState(() => _textController.text = text);
+      hapticTick();
+    } catch (_) {
+      if (mounted) _snack(context, 'სკანირება ვერ მოხერხდა');
+    } finally {
+      if (mounted) setState(() => _scanning = false);
+    }
   }
 
   @override
@@ -141,6 +165,29 @@ class _HomePageState extends State<HomePage> {
                       border: const OutlineInputBorder(),
                     ),
                   ),
+
+                  // კამერით სკანირება (მხოლოდ native პლატფორმებზე)
+                  if (kOcrSupported) ...[
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: (state.busy || _scanning) ? null : _scan,
+                        icon: _scanning
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.document_scanner_outlined,
+                                size: 20),
+                        label: Text(_scanning
+                            ? 'ვასკანერებ…'
+                            : 'კამერით სკანირება'),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
 
                   // PIN-ის ველი
