@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import 'app_state.dart';
+
+/// გაზიარებული ლინკი — აპის მისამართი.
+const String kShareLink = 'https://text.qgis.ge/';
 
 void main() {
   runApp(
@@ -61,6 +65,13 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('დაშიფრული ჩანაწერი'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_2),
+            tooltip: 'გაზიარება (QR)',
+            onPressed: () => _showShareDialog(context),
+          ),
+        ],
       ),
       body: Center(
         child: ConstrainedBox(
@@ -208,6 +219,72 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showShareDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('გააზიარე აპი'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'დაასკანერე QR ან გაუზიარე ლინკი მეორე ადამიანს.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: QrImageView(
+                data: kShareLink,
+                version: QrVersions.auto,
+                size: 200,
+                backgroundColor: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SelectableText(
+              kShareLink,
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton.icon(
+            icon: const Icon(Icons.copy, size: 18),
+            label: const Text('ლინკის კოპირება'),
+            onPressed: () async {
+              await Clipboard.setData(
+                const ClipboardData(text: kShareLink),
+              );
+              if (ctx.mounted) Navigator.of(ctx).pop();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('ლინკი დაკოპირდა'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              }
+            },
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('დახურვა'),
+          ),
+        ],
       ),
     );
   }

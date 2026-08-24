@@ -3,7 +3,7 @@
 ორ ადამიანს შორის დაშიფრული ტექსტის გაცვლა საერთო PIN-ით. შედეგი
 ისეა დაფორმატებული, რომ მოხერხებულია ხელით ქაღალდზე გადასაწერად.
 
-🔗 **ვებ-აპი:** https://kapo-toolkits.github.io/crypto_note/
+🔗 **ვებ-აპი:** https://text.qgis.ge/
 
 ## როგორ მუშაობს
 
@@ -34,7 +34,7 @@
 ```bash
 flutter pub get
 flutter test
-flutter build web --base-href /crypto_note/
+flutter build web --base-href /
 ```
 
 State management: Provider. კრიპტო პაკეტი: `cryptography`.
