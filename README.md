@@ -4,6 +4,7 @@
 ისეა დაფორმატებული, რომ მოხერხებულია ხელით ქაღალდზე გადასაწერად.
 
 🔗 **ვებ-აპი:** https://text.qgis.ge/
+📱 **Android APK:** [ჩამოტვირთვა (Releases)](https://github.com/kapo-Toolkits/crypto_note/releases/latest)
 
 ## როგორ მუშაობს
 

@@ -1,14 +1,2 @@
-import 'dart:js_interop';
-
-@JS('navigator.vibrate')
-external JSBoolean? _navigatorVibrate(JSAny pattern);
-
-/// მსუბუქი ვიბრაცია მობილურ ბრაუზერზე (Android Chrome).
-/// iOS Safari-ს Vibration API არ აქვს — ჩუმად იგნორდება.
-void hapticTick([int ms = 20]) {
-  try {
-    _navigatorVibrate(ms.toJS);
-  } catch (_) {
-    // უგულებელყოფა — არ არის მხარდაჭერილი
-  }
-}
+// პლატფორმა-სპეციფიკური ჰაპტიკა: web → navigator.vibrate, native → HapticFeedback.
+export 'haptics_io.dart' if (dart.library.js_interop) 'haptics_web.dart';
