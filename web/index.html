@@ -18,13 +18,37 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="დაშიფრული ტექსტის გაცვლა საერთო PIN-ით — ხელით გადასაწერი Crockford Base32">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#3F51B5">
+  <meta name="color-scheme" content="light dark">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="დაშიფრული ჩანაწერი">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Flutter engine აყენებს user-scalable=no; pinch-zoom-ს ვაბრუნებთ წაკითხვადობისთვის -->
+  <script>
+    (function () {
+      var wanted = 'width=device-width, initial-scale=1.0, viewport-fit=cover';
+      function allowZoom() {
+        var vp = document.querySelector('meta[name="viewport"]');
+        if (!vp) {
+          vp = document.createElement('meta');
+          vp.setAttribute('name', 'viewport');
+          document.head.appendChild(vp);
+        }
+        if (vp.getAttribute('content') !== wanted) {
+          vp.setAttribute('content', wanted);
+        }
+      }
+      allowZoom();
+      new MutationObserver(allowZoom).observe(
+        document.head, { childList: true, subtree: true, attributes: true });
+    })();
+  </script>
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>

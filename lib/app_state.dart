@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'crypto_service.dart';
+import 'haptics.dart';
 
 enum Mode { encrypt, decrypt }
 
@@ -44,7 +45,9 @@ class AppState extends ChangeNotifier {
       } else {
         result = await _service.decrypt(text, pin);
       }
+      hapticTick(25);
     } catch (e) {
+      hapticTick(60);
       if (mode == Mode.decrypt) {
         error = 'განშიფვრა ვერ მოხერხდა — შეამოწმე PIN და ტექსტი.';
       } else {
