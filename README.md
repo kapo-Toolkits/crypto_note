@@ -19,6 +19,24 @@
 განშიფვრისას input ავტომატურად ნორმალიზდება (uppercase, ჰარები/ხაზები
 იშლება, `O→0`, `I/L→1`), ამიტომ ხელით გადაწერისას მცირე შეცდომები არ უშლის ხელს.
 
+## 📱 Android APK — ინსტალაცია
+
+1. **ჩამოტვირთე** უახლესი APK:
+   [Releases → crypto_note-vX.Y.Z.apk](https://github.com/kapo-Toolkits/crypto_note/releases/latest)
+   (გვერდის ბოლოს, „Assets"-ში).
+2. გახსენი ჩამოტვირთული ფაილი (Notifications ან „Files → Downloads").
+3. Android გკითხავს **„უცნობი წყაროებიდან ინსტალაციის"** ნებართვას (რადგან
+   აპი Play Store-ის გარეთაა). დაეთანხმე: *Settings → დაუშვი ამ წყაროდან* → უკან.
+4. დააჭირე **Install** → **Open**.
+5. პირველად QR-ის სკანირებისას აპი მოითხოვს **კამერის ნებართვას** — დართე.
+
+> ℹ️ **განახლება.** უბრალოდ ჩამოტვირთე ახალი APK და დააინსტალე ძველზე ზემოდან.
+> გამონაკლისი: თუ **v1.0.0 ან v1.1.0** გაქვს დაინსტალებული, ჯერ **წაშალე** ისინი
+> და მერე დააინსტალე v1.2.0+ (ხელმოწერის გასაღები შეიცვალა).
+
+> 🔒 APK ხელმოწერილია პროექტის release გასაღებით. აპი სრულად ოფლაინ მუშაობს —
+> ინტერნეტს არ იყენებს, მონაცემი მოწყობილობიდან არსად იგზავნება.
+
 ## კრიპტოგრაფია
 
 | | |
@@ -38,7 +56,9 @@
 ```bash
 flutter pub get
 flutter test
-flutter build web --base-href /
+flutter build web --base-href /        # ვები
+flutter build apk --release            # Android APK (release keystore საჭიროა)
 ```
 
-State management: Provider. კრიპტო პაკეტი: `cryptography`.
+State management: Provider. ძირითადი პაკეტები: `cryptography`, `provider`,
+`qr_flutter`, `share_plus`, `mobile_scanner`.
