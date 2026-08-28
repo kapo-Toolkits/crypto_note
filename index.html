@@ -55,6 +55,74 @@
 
   <title>დაშიფრული ჩანაწერი</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- In-app browser (Messenger/Instagram/FB) გამოვლენა და "ბრაუზერში გახსნის" ბანერი.
+       ამ ჩაშენებულ ბრაუზერებში Flutter web არასწორად მასშტაბდება. -->
+  <style>
+    #iab-banner {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 2147483647;
+      background: #3F51B5; color: #fff;
+      font-family: system-ui, -apple-system, "Noto Sans Georgian", sans-serif;
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 12px; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+      font-size: 14px; line-height: 1.3;
+    }
+    #iab-banner .iab-txt { flex: 1; min-width: 0; }
+    #iab-banner button {
+      border: 0; border-radius: 8px; padding: 8px 12px;
+      font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+      font-family: inherit;
+    }
+    #iab-open { background: #fff; color: #3F51B5; }
+    #iab-copy { background: rgba(255,255,255,.18); color: #fff; }
+    #iab-close { background: transparent; color: #fff; font-size: 18px; padding: 4px 8px; }
+  </style>
+  <script>
+    (function () {
+      var ua = navigator.userAgent || '';
+      var inApp = /FBAN|FBAV|FB_IAB|FB4A|Messenger|Instagram|MicroMessenger|Line\/|Twitter|WhatsApp|Snapchat|TikTok|Viber/i.test(ua);
+      if (!inApp) return;
+      var LINK = 'https://text.qgis.ge/';
+      function build() {
+        if (document.getElementById('iab-banner')) return;
+        var b = document.createElement('div');
+        b.id = 'iab-banner';
+        b.innerHTML =
+          '<span class="iab-txt">უკეთესი ხედისთვის გახსენი ბრაუზერში</span>' +
+          '<button id="iab-open">Chrome-ში</button>' +
+          '<button id="iab-copy">ლინკის კოპირება</button>' +
+          '<button id="iab-close" aria-label="დახურვა">✕</button>';
+        document.body.appendChild(b);
+        document.getElementById('iab-open').onclick = function () {
+          // Android: Chrome-ის intent; iOS-ზე უბრალოდ ხელახლა გახსნა
+          if (/Android/i.test(ua)) {
+            window.location.href =
+              'intent://text.qgis.ge/#Intent;scheme=https;package=com.android.chrome;end';
+          } else {
+            window.open(LINK, '_blank');
+          }
+        };
+        document.getElementById('iab-copy').onclick = function () {
+          var btn = this;
+          function ok() { btn.textContent = 'დაკოპირდა ✓'; }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(LINK).then(ok, function () {});
+          } else {
+            var t = document.createElement('textarea');
+            t.value = LINK; document.body.appendChild(t); t.select();
+            try { document.execCommand('copy'); ok(); } catch (e) {}
+            document.body.removeChild(t);
+          }
+        };
+        document.getElementById('iab-close').onclick = function () {
+          var el = document.getElementById('iab-banner');
+          if (el) el.remove();
+        };
+      }
+      if (document.body) build();
+      else document.addEventListener('DOMContentLoaded', build);
+    })();
+  </script>
 </head>
 <body>
   <!--
